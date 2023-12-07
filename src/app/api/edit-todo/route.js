@@ -9,11 +9,11 @@ export async function POST(req){
     const collection = await db.collection("todos")
 
     const {id,title} = await req.json()
-    let find_todo = await collection.findOne({_id:new ObjectId(id)})
+    let find_todo = await collection.findOne({_id: new ObjectId(id)})
     if(!find_todo){
-        return NextResponse({"error": "todo not find for update"})
+        return NextResponse.json({"error": "todo not found for update"})
     }
-    await collection.updateOne({_id:new ObjectId(id)},{
+    await collection.updateOne({_id: new ObjectId(id)},{
         $set:{
             title
         }
