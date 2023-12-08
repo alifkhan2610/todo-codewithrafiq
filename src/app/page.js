@@ -5,6 +5,7 @@ const page = () => {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
+  const [editTodoID, setEditTodoID] = useState("");
 
   useEffect(() => {
     const getTodos = () => {
@@ -25,7 +26,7 @@ const page = () => {
     await fetch("http://localhost:3000/api/add-todo", {
       method: "POST",
       body: JSON.stringify({
-        title,
+        title
       }),
     })
       .then((res) => res.json())
@@ -36,8 +37,9 @@ const page = () => {
       });
   };
 
-  const handleDeleteTodoBtn = async (e, id) =>{
-    await fetch("http://localhost:3000/api/add-todo", {
+  const handleDeleteTodoBtn = async (e, id) => {
+    console.log(id);
+    await fetch("http://localhost:3000/api/delete-todo", {
       method: "POST",
       body: JSON.stringify({
         id,
@@ -46,9 +48,39 @@ const page = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log("Handle Delete Todo---->", data);
+        let new_todos = todos.filter((item) => item._id !== id)
         // setTodos([...todos, data]);
-        // setTitle("");
+        setTodos(new_todos);
       });
+  }
+
+  const handleEditBtnClick = (e, id) => {
+    setEditTodoID(id);
+    let todo = todos.find((todo) => todo._id === id)
+    setTitle(todo.title);
+
+  }
+
+  const handleUpdateEditTodo = async (e) => {
+    await fetch("http://localhost:3000/api/edit-todo", {
+      method: "POST",
+      body: JSON.stringify({
+        id: editTodoID,
+        title
+      })
+    }).then((res) => res.json())
+    .then((data) => {
+      console.log("Handle Delete Todo---->", data);
+      let new_todos = todos.map((item)=>{
+        if(item._id === editTodoID ){
+          item.title = title;
+        }
+        return item;
+      })
+      setTodos(new_todos);
+      setTitle("");
+      setEditTodoID("");
+    })
   }
 
   return (
@@ -68,13 +100,27 @@ const page = () => {
           placeholder="Add Todo"
         />
 
-        <button
-          type="button"
-          onClick={handleAddTodoBtn}
-          className="mx-1 my-2 py-3 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5  mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-        >
-          Add
-        </button>
+        {
+          editTodoID ? (
+            <button
+              type="button"
+              onClick={handleUpdateEditTodo}
+              className="mx-1 text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2   dark:focus:ring-yellow-900"
+            >
+              Edit
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddTodoBtn}
+              className="mx-1 my-2 py-3 focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5  mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            >
+              Add
+            </button>
+          )
+        }
+
+
       </div>
       <div className=" border rounded-lg shadow">
         <div className="text-center p-2">
@@ -97,13 +143,14 @@ const page = () => {
                   <div className=" flex items-center w-full justify-end">
                     <button
                       type="button"
+                      onClick={(e) => handleEditBtnClick(e, todo._id)}
                       className="mx-1 text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2   dark:focus:ring-yellow-900"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
-                      onClick={(e)=>handleDeleteTodoBtn(e.title._id)}
+                      onClick={(e) => handleDeleteTodoBtn(e, todo._id)}
                       className="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2   dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
                     >
                       Delete
@@ -115,7 +162,7 @@ const page = () => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
